@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, ArrowLeft, Mail, Lock, User, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Mail, Lock, User, CheckCircle, Clock, RefreshCw, AlertCircle, Wifi } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
@@ -35,6 +35,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
     e.preventDefault();
     setErrors({});
 
+    // Basic validation
+    if (!formData.email.trim()) {
+      setErrors({ submit: 'Email is required' });
+      return;
+    }
+    if (!formData.password.trim()) {
+      setErrors({ submit: 'Password is required' });
+      return;
+    }
+    if (mode === 'signup' && !formData.name.trim()) {
+      setErrors({ submit: 'Full name is required' });
+      return;
+    }
+
     try {
       let result;
       if (mode === 'signin') {
@@ -47,7 +61,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
         setErrors({ submit: result.error.message });
       }
     } catch (error: any) {
-      setErrors({ submit: error.message });
+      setErrors({ submit: error.message || 'An unexpected error occurred' });
     }
   };
 
@@ -59,12 +73,17 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
         setErrors({ submit: result.error.message });
       }
     } catch (error: any) {
-      setErrors({ submit: error.message });
+      setErrors({ submit: error.message || 'Google sign-in failed' });
     }
   };
 
   const handleResendConfirmation = async () => {
     setErrors({});
+    if (!formData.email.trim()) {
+      setErrors({ submit: 'Please enter your email address' });
+      return;
+    }
+
     try {
       const result = await resendConfirmation(formData.email);
       if (result.error) {
@@ -73,7 +92,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
         setErrors({ submit: 'Confirmation email sent! Please check your inbox.' });
       }
     } catch (error: any) {
-      setErrors({ submit: error.message });
+      setErrors({ submit: error.message || 'Failed to resend confirmation email' });
     }
   };
 
@@ -151,7 +170,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
               transition={{ duration: 0.5, delay: 0.3 }}
             >
               {emailConfirmationRequired ? (
-                /* Email Confirmation Required View */
+                /* Email Confirmation Required View - Enhanced with better contrast */
                 <div className="text-center space-y-6">
                   <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto">
                     <Mail className="w-8 h-8 text-blue-400" />
@@ -175,16 +194,30 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
                       Click the link in your email to verify your account
                     </div>
 
-                    {rateLimitRemaining > 0 ? (
-                      <div className="flex items-center justify-center text-yellow-400 text-sm">
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
+                      <div className="flex items-center text-yellow-300 text-sm">
                         <Clock className="w-4 h-4 mr-2" />
-                        Resend available in {rateLimitRemaining}s
+                        <span className="font-medium text-white">
+                          Confirmation links expire in 24 hours
+                        </span>
+                      </div>
+                      <p className="text-yellow-200 text-xs mt-1">
+                        If you don't see the email, check your spam folder
+                      </p>
+                    </div>
+
+                    {rateLimitRemaining > 0 ? (
+                      <div className="flex items-center justify-center text-gray-300 text-sm">
+                        <Clock className="w-4 h-4 mr-2 text-yellow-400" />
+                        <span className="text-white font-medium">
+                          Resend available in {rateLimitRemaining}s
+                        </span>
                       </div>
                     ) : (
                       <Button
                         onClick={handleResendConfirmation}
                         variant="outline"
-                        className="w-full border-white/30 text-white hover:bg-white/10"
+                        className="w-full border-white/30 text-white hover:bg-white/10 font-medium"
                         isLoading={loading}
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
@@ -198,7 +231,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
                         setMode('signin');
                       }}
                       variant="ghost"
-                      className="w-full text-gray-300 hover:text-white"
+                      className="w-full text-gray-300 hover:text-white font-medium"
                     >
                       Back to sign in
                     </Button>
@@ -207,14 +240,14 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
               ) : (
                 /* Normal Auth Form */
                 <>
-                  {/* Google Sign-In - Improved Contrast */}
+                  {/* Google Sign-In - Maximum Contrast */}
                   <Button
                     onClick={handleGoogleSignIn}
                     variant="outline"
-                    className="w-full mb-6 bg-white text-gray-900 border-white hover:bg-gray-100 font-medium"
+                    className="w-full mb-6 bg-white text-gray-900 border-white hover:bg-gray-100 font-semibold shadow-lg"
                     isLoading={loading}
                   >
-                    <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                       <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                       <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -289,19 +322,28 @@ export const AuthForm: React.FC<AuthFormProps> = ({ onBack, initialMode = 'signi
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className={`text-sm p-3 rounded-lg ${
+                        className={`text-sm p-3 rounded-lg flex items-start ${
                           errors.submit.includes('sent') || errors.submit.includes('check')
-                            ? 'text-green-400 bg-green-500/10 border border-green-500/20'
-                            : 'text-red-400 bg-red-500/10 border border-red-500/20'
+                            ? 'text-green-200 bg-green-500/20 border border-green-500/30'
+                            : errors.submit.includes('Network')
+                            ? 'text-orange-200 bg-orange-500/20 border border-orange-500/30'
+                            : 'text-red-200 bg-red-500/20 border border-red-500/30'
                         }`}
                       >
-                        {errors.submit}
+                        {errors.submit.includes('Network') ? (
+                          <Wifi className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                        ) : errors.submit.includes('sent') ? (
+                          <CheckCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className="font-medium">{errors.submit}</span>
                       </motion.div>
                     )}
 
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-3"
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 py-3 font-semibold"
                       isLoading={loading}
                     >
                       {mode === 'signin' ? 'Sign In' : 'Create Account'}

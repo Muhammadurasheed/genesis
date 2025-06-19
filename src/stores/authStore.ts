@@ -8,6 +8,7 @@ interface AuthState {
   emailConfirmationRequired: boolean;
   lastEmailSent: number | null;
   rateLimitRemaining: number;
+  connectionError: boolean;
   initialize: () => void;
   signIn: (email: string, password: string) => Promise<{ error?: any }>;
   signUp: (email: string, password: string, name: string) => Promise<{ error?: any }>;
@@ -15,6 +16,7 @@ interface AuthState {
   resendConfirmation: (email: string) => Promise<{ error?: any }>;
   signOut: () => Promise<void>;
   clearEmailConfirmationState: () => void;
+  clearConnectionError: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -23,9 +25,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   emailConfirmationRequired: false,
   lastEmailSent: null,
   rateLimitRemaining: 0,
+  connectionError: false,
 
   initialize: async () => {
     try {
+      set({ connectionError: false });
+      
       // Check for existing session first
       const { session } = await auth.getCurrentSession();
       if (session?.user) {
@@ -43,39 +48,55 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
     } catch (error) {
       console.error('Auth initialization error:', error);
-      set({ loading: false });
+      set({ loading: false, connectionError: true });
     }
   },
 
   signIn: async (email: string, password: string) => {
-    set({ loading: true, emailConfirmationRequired: false });
+    set({ loading: true, emailConfirmationRequired: false, connectionError: false });
     const { data, error } = await auth.signIn(email, password);
     
     if (error) {
       set({ loading: false });
       
+      // Handle network errors
+      if (error.message?.includes('Network')) {
+        set({ connectionError: true });
+        return { error: { ...error, message: 'Connection failed. Please check your internet and try again.' } };
+      }
+      
       // Handle specific auth errors
-      if (error.message?.includes('email_not_confirmed')) {
+      if (error.message?.includes('email_not_confirmed') || error.message?.includes('Email not confirmed')) {
         set({ emailConfirmationRequired: true });
         return { error: { ...error, message: 'Please check your email and click the confirmation link before signing in.' } };
+      }
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        return { error: { ...error, message: 'Invalid email or password. Please check your credentials and try again.' } };
       }
       
       return { error };
     }
 
-    set({ user: data.user as User, loading: false });
+    set({ user: data.user as User, loading: false, connectionError: false });
     return {};
   },
 
   signUp: async (email: string, password: string, name: string) => {
-    set({ loading: true });
+    set({ loading: true, connectionError: false });
     const { data, error } = await auth.signUp(email, password, name);
     
     if (error) {
       set({ loading: false });
       
+      // Handle network errors
+      if (error.message?.includes('Network')) {
+        set({ connectionError: true });
+        return { error: { ...error, message: 'Connection failed. Please check your internet and try again.' } };
+      }
+      
       // Handle rate limiting
-      if (error.message?.includes('email_send_rate_limit')) {
+      if (error.message?.includes('email_send_rate_limit') || error.message?.includes('rate_limit')) {
         const now = Date.now();
         set({ 
           lastEmailSent: now,
@@ -93,7 +114,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         }, 1000);
         
-        return { error: { ...error, message: `Please wait ${20} seconds before requesting another confirmation email.` } };
+        return { error: { ...error, message: `Please wait 20 seconds before requesting another confirmation email.` } };
+      }
+      
+      if (error.message?.includes('already registered')) {
+        return { error: { ...error, message: 'An account with this email already exists. Please sign in instead.' } };
       }
       
       return { error };
@@ -109,27 +134,32 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { error: { message: 'Please check your email and click the confirmation link to complete your account setup.' } };
     }
 
-    set({ user: data.user as User, loading: false });
+    set({ user: data.user as User, loading: false, connectionError: false });
     return {};
   },
 
   signInWithGoogle: async () => {
-    set({ loading: true });
+    set({ loading: true, connectionError: false });
     const { data, error } = await auth.signInWithGoogle();
     
     if (error) {
       set({ loading: false });
       
       // Handle specific Google OAuth errors
-      if (error.message?.includes('provider is not enabled')) {
-        return { error: { ...error, message: 'Google sign-in is not enabled. Please contact support or use email/password.' } };
+      if (error.message?.includes('provider is not enabled') || error.message?.includes('validation_failed')) {
+        return { error: { ...error, message: 'Google sign-in is not enabled. Please use email/password or contact support.' } };
+      }
+      
+      if (error.message?.includes('Network') || error.message?.includes('Failed to initiate')) {
+        set({ connectionError: true });
+        return { error: { ...error, message: 'Failed to connect to Google. Please check your internet and try again.' } };
       }
       
       return { error };
     }
 
     // User will be set via onAuthStateChange callback after redirect
-    set({ loading: false });
+    set({ loading: false, connectionError: false });
     return {};
   },
 
@@ -144,10 +174,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return { error: { message: `Please wait ${remaining} seconds before requesting another email.` } };
     }
 
+    set({ connectionError: false });
     const { data, error } = await auth.resendConfirmation(email);
     
     if (error) {
-      if (error.message?.includes('email_send_rate_limit')) {
+      if (error.message?.includes('email_send_rate_limit') || error.message?.includes('rate_limit')) {
         set({ 
           lastEmailSent: now,
           rateLimitRemaining: 20
@@ -164,6 +195,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         }, 1000);
       }
+      
+      if (error.message?.includes('Network') || error.message?.includes('Failed to resend')) {
+        set({ connectionError: true });
+      }
+      
       return { error };
     }
 
@@ -179,6 +215,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
+  clearConnectionError: () => {
+    set({ connectionError: false });
+  },
+
   signOut: async () => {
     set({ loading: true });
     await auth.signOut();
@@ -187,7 +227,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       loading: false, 
       emailConfirmationRequired: false,
       lastEmailSent: null,
-      rateLimitRemaining: 0
+      rateLimitRemaining: 0,
+      connectionError: false
     });
   }
 }));
