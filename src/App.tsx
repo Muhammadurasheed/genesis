@@ -4,7 +4,7 @@ import { LandingPage } from './components/landing/LandingPage';
 import { AuthForm } from './components/auth/AuthForm';
 import { WizardFlow } from './components/wizard/WizardFlow';
 import { Header } from './components/layout/Header';
-import { ConnectionTest } from './components/ui/ConnectionTest';
+import { BackendStatus } from './components/ui/BackendStatus';
 
 type AppState = 'landing' | 'auth' | 'app';
 
@@ -13,18 +13,17 @@ function App() {
   const [appState, setAppState] = useState<AppState>('landing');
 
   useEffect(() => {
-    console.log('🚀 Initializing GenesisOS...');
+    console.log('🚀 GenesisOS Phase 3: Initializing with live backend...');
     initialize();
   }, []);
 
   useEffect(() => {
     if (!loading) {
       if (user) {
-        console.log('✅ User authenticated:', user.email);
+        console.log('✅ User authenticated - entering main app:', user.email);
         setAppState('app');
       } else {
-        console.log('👤 No user, showing landing/auth');
-        // Only show landing if we're not already in auth mode
+        console.log('👤 No user authenticated');
         if (appState !== 'auth') {
           setAppState('landing');
         }
@@ -40,9 +39,10 @@ function App() {
             <span className="text-white font-bold text-2xl">G</span>
           </div>
           <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white/70 text-sm">Initializing GenesisOS...</p>
+          <p className="text-white/70 text-sm">Initializing AI-Native Workspace...</p>
+          <p className="text-white/50 text-xs mt-2">Phase 3: Live Backend Integration</p>
         </div>
-        <ConnectionTest />
+        <BackendStatus />
       </div>
     );
   }
@@ -54,7 +54,7 @@ function App() {
           onGetStarted={() => setAppState('auth')}
           onSignIn={() => setAppState('auth')}
         />
-        <ConnectionTest />
+        <BackendStatus />
       </>
     );
   }
@@ -65,7 +65,7 @@ function App() {
         <AuthForm 
           onBack={() => setAppState('landing')}
         />
-        <ConnectionTest />
+        <BackendStatus />
       </>
     );
   }
@@ -77,7 +77,7 @@ function App() {
       <main>
         <WizardFlow />
       </main>
-      <ConnectionTest />
+      <BackendStatus />
     </div>
   );
 }
