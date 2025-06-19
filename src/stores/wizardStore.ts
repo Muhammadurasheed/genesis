@@ -86,7 +86,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       set({ isLoading: true, errors: [] });
       console.log('🤖 Starting AI blueprint generation...');
       
-      // Call the real backend API
+      // Call API with smart fallback handling
       const blueprint = await apiMethods.generateBlueprint(user_input);
       
       get().setBlueprint(blueprint);
@@ -112,58 +112,24 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
 
     try {
       set({ isLoading: true, errors: [] });
-      console.log('🧪 Starting guild simulation...');
+      console.log('🧪 Starting intelligent guild simulation...');
       
-      // Create temporary guild for simulation
+      // Prepare simulation data
       const simulationData = {
         blueprint_id: blueprint.id,
+        agents: blueprint.suggested_structure.agents,
+        workflows: blueprint.suggested_structure.workflows,
         test_credentials: credentials,
-        simulation_type: 'full_workflow',
-        test_scenarios: [
-          {
-            name: 'Basic Workflow Test',
-            description: 'Test agent coordination and response quality',
-            input_data: {
-              user_request: "Generate a weekly business report",
-              expected_actions: blueprint.suggested_structure.agents.length
-            }
-          }
-        ]
+        simulation_type: 'full_workflow_intelligence_test'
       };
       
-      // This will be a real API call to run simulation
-      const results = await new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            overall_success: true,
-            execution_time: 3.2,
-            agents_tested: blueprint.suggested_structure.agents.length,
-            agent_responses: blueprint.suggested_structure.agents.map((agent, index) => ({
-              agent_name: agent.name,
-              response: `✅ ${agent.name} successfully executed ${agent.role} tasks`,
-              thought_process: [
-                `Analyzed request context`,
-                `Applied ${agent.role} expertise`,
-                `Generated appropriate response`,
-                `Coordinated with other agents`
-              ],
-              execution_time: 0.8 + (index * 0.3),
-              success: true
-            })),
-            insights: [
-              'All agents responded within acceptable timeframes',
-              'Memory systems functioning correctly', 
-              'Tool integrations working as expected',
-              'Guild ready for deployment'
-            ]
-          });
-        }, 3000);
-      });
+      // Run comprehensive simulation
+      const results = await apiMethods.runSimulation(blueprint.id, simulationData);
       
       get().setSimulationResults(results);
       get().setStep('deployment');
       
-      console.log('✅ Simulation completed successfully');
+      console.log('✅ Intelligent simulation completed successfully');
       set({ isLoading: false });
       
     } catch (error: any) {
@@ -185,7 +151,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       set({ isLoading: true, errors: [] });
       console.log('🚀 Starting guild deployment...');
       
-      // Create the actual guild
+      // Create the guild
       const guildData = {
         name: blueprint.suggested_structure.guild_name,
         description: blueprint.interpretation,
@@ -194,7 +160,8 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
         metadata: {
           blueprint_id: blueprint.id,
           simulation_results: simulationResults,
-          deployment_timestamp: new Date().toISOString()
+          deployment_timestamp: new Date().toISOString(),
+          credentials_configured: Object.keys(credentials).length > 0
         }
       };
       
@@ -202,8 +169,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       console.log('✅ Guild created:', guild.id);
       
       // Create agents for the guild
-      const agents = [];
-      for (const agentBlueprint of blueprint.suggested_structure.agents) {
+      const agentPromises = blueprint.suggested_structure.agents.map(agentBlueprint => {
         const agentData = {
           name: agentBlueprint.name,
           role: agentBlueprint.role,
@@ -231,10 +197,12 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
           }
         };
         
-        const agent = await apiMethods.createAgent(agentData);
-        agents.push(agent);
-        console.log(`✅ Agent created: ${agent.name}`);
-      }
+        return apiMethods.createAgent(agentData);
+      });
+      
+      // Wait for all agents to be created
+      const agents = await Promise.all(agentPromises);
+      console.log(`✅ Created ${agents.length} agents successfully`);
       
       set({ 
         deploymentId: guild.id,

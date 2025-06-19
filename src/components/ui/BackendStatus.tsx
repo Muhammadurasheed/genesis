@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle } from 'lucide-react';
+import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench } from 'lucide-react';
 import { testBackendConnection } from '../../lib/api';
 
 interface BackendStatusProps {
@@ -7,9 +7,10 @@ interface BackendStatusProps {
 }
 
 export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) => {
-  const [status, setStatus] = useState<'testing' | 'connected' | 'failed' | 'slow'>('testing');
+  const [status, setStatus] = useState<'testing' | 'connected' | 'failed' | 'development'>('testing');
   const [latency, setLatency] = useState<number>(0);
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
+  const [mode, setMode] = useState<string>('');
 
   const checkConnection = async () => {
     setStatus('testing');
@@ -18,17 +19,21 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
       const result = await testBackendConnection();
       
       if (result.connected) {
-        if (result.latency > 2000) {
-          setStatus('slow');
+        if (result.status.mode === 'development' || result.status.status === 'development_fallback') {
+          setStatus('development');
+          setMode('Development Mode');
         } else {
           setStatus('connected');
+          setMode('Production');
         }
         setLatency(result.latency);
       } else {
         setStatus('failed');
+        setMode('Offline');
       }
     } catch (error) {
       setStatus('failed');
+      setMode('Error');
     }
     
     setLastCheck(new Date());
@@ -51,25 +56,25 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           bg: 'bg-green-500/20',
           border: 'border-green-500/30',
           text: 'Backend Online',
-          detail: `${latency}ms`
+          detail: `${latency}ms • ${mode}`
         };
-      case 'slow':
+      case 'development':
         return {
-          icon: AlertCircle,
-          color: 'text-yellow-500',
-          bg: 'bg-yellow-500/20',
-          border: 'border-yellow-500/30',
-          text: 'Backend Slow',
-          detail: `${latency}ms`
+          icon: Code,
+          color: 'text-blue-500',
+          bg: 'bg-blue-500/20',
+          border: 'border-blue-500/30',
+          text: 'Development Mode',
+          detail: `${latency}ms • Mock APIs`
         };
       case 'failed':
         return {
           icon: WifiOff,
-          color: 'text-red-500',
-          bg: 'bg-red-500/20',
-          border: 'border-red-500/30',
-          text: 'Backend Offline',
-          detail: 'Retry...'
+          color: 'text-orange-500',
+          bg: 'bg-orange-500/20',
+          border: 'border-orange-500/30',
+          text: 'Using Fallbacks',
+          detail: 'Mock data active'
         };
       default:
         return {
@@ -78,7 +83,7 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           bg: 'bg-blue-500/20',
           border: 'border-blue-500/30',
           text: 'Connecting...',
-          detail: '...'
+          detail: 'Testing...'
         };
     }
   };
@@ -86,32 +91,41 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
   const statusInfo = getStatusInfo();
   const Icon = statusInfo.icon;
 
+  // Show in development or when there are issues
   if (import.meta.env.PROD && status === 'connected') {
-    return null; // Don't show in production when working
+    return null;
   }
 
   return (
     <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
-      <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm border backdrop-blur-sm ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border}`}>
-        <Icon className={`w-4 h-4 ${status === 'testing' ? 'animate-pulse' : ''}`} />
+      <div className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm border backdrop-blur-sm ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border} shadow-lg`}>
+        <Icon className={`w-5 h-5 ${status === 'testing' ? 'animate-pulse' : ''}`} />
         
         <div className="flex flex-col">
-          <span className="font-medium leading-tight">{statusInfo.text}</span>
-          <span className="text-xs opacity-70">{statusInfo.detail}</span>
+          <span className="font-semibold leading-tight">{statusInfo.text}</span>
+          <span className="text-xs opacity-80">{statusInfo.detail}</span>
         </div>
         
         <button
           onClick={checkConnection}
-          className="ml-2 hover:opacity-70 transition-opacity"
+          className="ml-2 p-1 hover:opacity-70 transition-opacity rounded"
           title="Test connection"
         >
-          <Wifi className="w-3 h-3" />
+          <Wifi className="w-4 h-4" />
         </button>
       </div>
       
-      <div className="text-xs text-gray-500 mt-1 text-right">
-        Last: {lastCheck.toLocaleTimeString()}
-      </div>
+      {import.meta.env.DEV && (
+        <div className="text-xs text-gray-400 mt-2 text-right px-2">
+          Last check: {lastCheck.toLocaleTimeString()}
+          {status === 'development' && (
+            <div className="text-blue-400 mt-1">
+              <Wrench className="w-3 h-3 inline mr-1" />
+              Smart fallbacks active
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
