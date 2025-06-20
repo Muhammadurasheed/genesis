@@ -3,49 +3,107 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Check for placeholder values
+const hasPlaceholderValues = 
+  !supabaseUrl || 
+  !supabaseAnonKey || 
+  supabaseUrl === 'your_supabase_project_url' ||
+  supabaseAnonKey === 'your_supabase_anon_key' ||
+  supabaseUrl.includes('your_') ||
+  supabaseAnonKey.includes('your_');
+
 // Enhanced validation and error handling
+if (hasPlaceholderValues) {
+  console.warn('⚠️ Supabase not configured - using placeholder values');
+  console.warn('Please update your .env file with actual Supabase credentials:');
+  console.warn('1. Create a Supabase project at https://supabase.com');
+  console.warn('2. Get your project URL and anon key from Settings > API');
+  console.warn('3. Replace placeholder values in .env file');
+  console.warn('VITE_SUPABASE_URL:', supabaseUrl ? '🔄 Placeholder detected' : '❌ Missing');
+  console.warn('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '🔄 Placeholder detected' : '❌ Missing');
+}
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Missing Supabase environment variables');
   console.error('VITE_SUPABASE_URL:', supabaseUrl ? '✅ Set' : '❌ Missing');
   console.error('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✅ Set' : '❌ Missing');
-  throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
 
-// Validate URL format
-try {
-  new URL(supabaseUrl);
-} catch (e) {
-  console.error('❌ Invalid Supabase URL format:', supabaseUrl);
-  throw new Error('Invalid Supabase URL format');
+// Validate URL format only if not using placeholder values
+if (supabaseUrl && !hasPlaceholderValues) {
+  try {
+    new URL(supabaseUrl);
+  } catch (e) {
+    console.error('❌ Invalid Supabase URL format:', supabaseUrl);
+    throw new Error('Invalid Supabase URL format');
+  }
 }
 
 // Debug logging for development
 if (import.meta.env.DEV) {
   console.log('🔧 Supabase Configuration:');
-  console.log('URL:', supabaseUrl);
-  console.log('Key (first 20 chars):', supabaseAnonKey?.substring(0, 20) + '...');
+  if (hasPlaceholderValues) {
+    console.log('Status: ⚠️ Using placeholder values - Supabase features disabled');
+    console.log('URL: 🔄 Placeholder detected');
+    console.log('Key: 🔄 Placeholder detected');
+  } else {
+    console.log('URL:', supabaseUrl);
+    console.log('Key (first 20 chars):', supabaseAnonKey?.substring(0, 20) + '...');
+  }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    flowType: 'pkce',
-    debug: import.meta.env.DEV
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  },
-  global: {
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': supabaseAnonKey,
+// Create a fallback client for placeholder values
+const createSupabaseClient = () => {
+  if (hasPlaceholderValues) {
+    // Create a mock client that won't crash but will log warnings
+    const mockClient = {
+      auth: {
+        signUp: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+        signInWithPassword: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+        signInWithOAuth: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+        signOut: async () => ({ error: { message: 'Supabase not configured' } }),
+        getUser: async () => ({ data: { user: null }, error: { message: 'Supabase not configured' } }),
+        getSession: async () => ({ data: { session: null }, error: { message: 'Supabase not configured' } }),
+        resend: async () => ({ data: null, error: { message: 'Supabase not configured' } }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+      },
+      from: () => ({
+        select: () => ({ error: { message: 'Supabase not configured' } }),
+        insert: () => ({ error: { message: 'Supabase not configured' } }),
+        update: () => ({ error: { message: 'Supabase not configured' } }),
+        upsert: () => ({ error: { message: 'Supabase not configured' } }),
+        delete: () => ({ error: { message: 'Supabase not configured' } }),
+        eq: function() { return this; },
+        single: function() { return this; },
+        limit: function() { return this; }
+      })
+    };
+    return mockClient as any;
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+      debug: import.meta.env.DEV
     },
-  },
-});
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseAnonKey,
+      },
+    },
+  });
+};
+
+export const supabase = createSupabaseClient();
 
 // Get the current domain for redirects
 const getCurrentDomain = () => {
@@ -57,6 +115,11 @@ const getCurrentDomain = () => {
 
 // Enhanced connection test
 const testConnection = async () => {
+  if (hasPlaceholderValues) {
+    console.log('⚠️ Skipping Supabase connection test - placeholder values detected');
+    return false;
+  }
+
   try {
     const { data, error } = await supabase.from('users').select('count').limit(1);
     if (error && error.code !== 'PGRST116') { // PGRST116 is "relation not found" which is expected
@@ -79,6 +142,16 @@ if (import.meta.env.DEV) {
 // Enhanced auth helpers with better error handling
 export const auth = {
   signUp: async (email: string, password: string, name: string) => {
+    if (hasPlaceholderValues) {
+      return { 
+        data: null, 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       console.log('🔄 Attempting signup for:', email);
       
@@ -145,6 +218,16 @@ export const auth = {
   },
 
   signIn: async (email: string, password: string) => {
+    if (hasPlaceholderValues) {
+      return { 
+        data: null, 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       console.log('🔄 Attempting signin for:', email);
       
@@ -202,6 +285,16 @@ export const auth = {
   },
 
   signInWithGoogle: async () => {
+    if (hasPlaceholderValues) {
+      return { 
+        data: null, 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       console.log('🔄 Attempting Google OAuth signin');
       
@@ -236,6 +329,15 @@ export const auth = {
   },
 
   signOut: async () => {
+    if (hasPlaceholderValues) {
+      return { 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       console.log('🔄 Signing out...');
       const { error } = await supabase.auth.signOut();
@@ -254,6 +356,16 @@ export const auth = {
   },
 
   getCurrentUser: async () => {
+    if (hasPlaceholderValues) {
+      return { 
+        user: null, 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
       
@@ -269,6 +381,16 @@ export const auth = {
   },
 
   getCurrentSession: async () => {
+    if (hasPlaceholderValues) {
+      return { 
+        session: null, 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       const { data: { session }, error } = await supabase.auth.getSession();
       
@@ -284,6 +406,16 @@ export const auth = {
   },
 
   resendConfirmation: async (email: string) => {
+    if (hasPlaceholderValues) {
+      return { 
+        data: null, 
+        error: { 
+          message: 'Supabase not configured. Please set up your Supabase credentials in the .env file.',
+          code: 'supabase_not_configured'
+        }
+      };
+    }
+
     try {
       console.log('🔄 Resending confirmation for:', email);
       
@@ -315,6 +447,18 @@ export const auth = {
   },
 
   onAuthStateChange: (callback: (user: any) => void) => {
+    if (hasPlaceholderValues) {
+      // Return a mock subscription for placeholder values
+      callback(null);
+      return {
+        data: {
+          subscription: {
+            unsubscribe: () => {}
+          }
+        }
+      };
+    }
+
     return supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state changed:', event, session?.user?.id);
       
