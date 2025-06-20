@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench } from 'lucide-react';
+import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench, Globe } from 'lucide-react';
 import { testBackendConnection } from '../../lib/api';
 
 interface BackendStatusProps {
@@ -7,10 +7,11 @@ interface BackendStatusProps {
 }
 
 export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) => {
-  const [status, setStatus] = useState<'testing' | 'connected' | 'failed' | 'development'>('testing');
+  const [status, setStatus] = useState<'testing' | 'connected' | 'failed' | 'development' | 'mixed-content'>('testing');
   const [latency, setLatency] = useState<number>(0);
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const [mode, setMode] = useState<string>('');
+  const [suggestedUrl, setSuggestedUrl] = useState<string>('');
 
   const checkConnection = async () => {
     setStatus('testing');
@@ -27,13 +28,33 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           setMode('Production');
         }
         setLatency(result.latency);
+        setSuggestedUrl(''); // Clear any previous suggestion
+      } else {
+        // Check if this is a mixed content error
+        if (result.status.error?.includes('Mixed Content Error')) {
+          setStatus('mixed-content');
+          setMode('Protocol Mismatch');
+          const urlMatch = result.status.error.match(/Navigate to: (.+)$/);
+          if (urlMatch) {
+            setSuggestedUrl(urlMatch[1]);
+          }
+        } else {
+          setStatus('failed');
+          setMode('Offline');
+        }
+      }
+    } catch (error: any) {
+      if (error.message?.includes('Mixed Content Error')) {
+        setStatus('mixed-content');
+        setMode('Protocol Mismatch');
+        const urlMatch = error.message.match(/Navigate to: (.+)$/);
+        if (urlMatch) {
+          setSuggestedUrl(urlMatch[1]);
+        }
       } else {
         setStatus('failed');
-        setMode('Offline');
+        setMode('Error');
       }
-    } catch (error) {
-      setStatus('failed');
-      setMode('Error');
     }
     
     setLastCheck(new Date());
@@ -66,6 +87,15 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           border: 'border-blue-500/30',
           text: 'Development Mode',
           detail: `${latency}ms • Mock APIs`
+        };
+      case 'mixed-content':
+        return {
+          icon: Globe,
+          color: 'text-orange-500',
+          bg: 'bg-orange-500/20',
+          border: 'border-orange-500/30',
+          text: 'Protocol Mismatch',
+          detail: 'HTTPS → HTTP blocked'
         };
       case 'failed':
         return {
@@ -114,6 +144,24 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           <Wifi className="w-4 h-4" />
         </button>
       </div>
+      
+      {/* Mixed content error guidance */}
+      {status === 'mixed-content' && suggestedUrl && (
+        <div className="mt-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-xs">
+          <div className="font-semibold text-orange-600 mb-1">
+            🚨 Mixed Content Error
+          </div>
+          <div className="text-gray-600 mb-2">
+            Frontend is HTTPS, backend is HTTP. Click below to switch:
+          </div>
+          <button
+            onClick={() => window.location.href = suggestedUrl}
+            className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+          >
+            Switch to HTTP
+          </button>
+        </div>
+      )}
       
       {import.meta.env.DEV && (
         <div className="text-xs text-gray-400 mt-2 text-right px-2">

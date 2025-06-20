@@ -23,6 +23,16 @@ export const api = axios.create({
   timeout: 15000, // Reduced timeout for better UX
 });
 
+// Helper function to detect mixed content issues
+const isMixedContentError = (error: any): boolean => {
+  const errorMessage = error.message?.toLowerCase() || '';
+  const isNetworkError = errorMessage.includes('network error');
+  const currentProtocol = window.location.protocol;
+  const apiProtocol = API_BASE_URL.startsWith('https://') ? 'https:' : 'http:';
+  
+  return isNetworkError && currentProtocol === 'https:' && apiProtocol === 'http:';
+};
+
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
@@ -42,6 +52,20 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
+    
+    // Check for mixed content issues in development
+    if (isDevelopment && isMixedContentError(error)) {
+      const currentUrl = window.location.href;
+      const httpUrl = currentUrl.replace('https://', 'http://');
+      
+      console.error('🚨 Mixed Content Error Detected!');
+      console.error('Frontend is running on HTTPS but backend is HTTP.');
+      console.error(`Please navigate to: ${httpUrl}`);
+      
+      // Add helpful error context
+      error.isMixedContent = true;
+      error.suggestedUrl = httpUrl;
+    }
     
     if (error.response?.status === 401) {
       localStorage.removeItem('supabase.auth.token');
@@ -116,6 +140,11 @@ export const apiMethods = {
       return response.data;
     } catch (error: any) {
       console.error('❌ API Health Check Failed:', error.message);
+      
+      // Handle mixed content error specifically
+      if (error.isMixedContent) {
+        throw new Error(`Mixed Content Error: Please access the app via HTTP instead of HTTPS. Navigate to: ${error.suggestedUrl}`);
+      }
       
       if (isDevelopment) {
         console.log('🔧 Falling back to development mode');
