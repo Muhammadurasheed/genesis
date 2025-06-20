@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from './stores/authStore';
-import { LandingPage } from './components/landing/LandingPage';
+import { RevolutionaryLanding } from './components/landing/RevolutionaryLanding';
 import { AuthForm } from './components/auth/AuthForm';
-import { WizardFlow } from './components/wizard/WizardFlow';
+import { EnhancedWizardFlow } from './components/wizard/EnhancedWizardFlow';
 import { Header } from './components/layout/Header';
 import { BackendStatus } from './components/ui/BackendStatus';
+import { QuantumLoader } from './components/ui/QuantumLoader';
+import { MagicalBackground } from './components/ui/MagicalBackground';
 
 type AppState = 'landing' | 'auth' | 'app';
 
@@ -13,17 +15,17 @@ function App() {
   const [appState, setAppState] = useState<AppState>('landing');
 
   useEffect(() => {
-    console.log('🚀 GenesisOS Phase 3: Initializing with live backend...');
+    console.log('🚀 GenesisOS: Initializing the AI-Native Operating System...');
     initialize();
   }, []);
 
   useEffect(() => {
     if (!loading) {
       if (user) {
-        console.log('✅ User authenticated - entering main app:', user.email);
+        console.log('✅ User authenticated - entering Genesis:', user.email);
         setAppState('app');
       } else {
-        console.log('👤 No user authenticated');
+        console.log('👤 Anonymous user - showing landing experience');
         if (appState !== 'auth') {
           setAppState('landing');
         }
@@ -33,24 +35,40 @@ function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-400 rounded-xl flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <span className="text-white font-bold text-2xl">G</span>
+      <MagicalBackground variant="cosmic" intensity="subtle">
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            {/* Animated Genesis Logo */}
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-2xl flex items-center justify-center mx-auto mb-8 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent animate-pulse" />
+              <span className="text-white font-bold text-3xl relative z-10">G</span>
+            </div>
+            
+            {/* Quantum Loader */}
+            <QuantumLoader size="lg" color="purple" />
+            
+            <div className="mt-8 space-y-2">
+              <p className="text-white/90 text-lg font-medium">Initializing AI-Native Workspace</p>
+              <p className="text-white/60 text-sm">Connecting to the Genesis consciousness...</p>
+            </div>
+            
+            {/* Progress indicators */}
+            <div className="mt-6 space-y-1 text-white/40 text-xs">
+              <p>🧠 Loading neural networks...</p>
+              <p>⚡ Establishing quantum connections...</p>
+              <p>🌟 Preparing your digital realm...</p>
+            </div>
           </div>
-          <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white/70 text-sm">Initializing AI-Native Workspace...</p>
-          <p className="text-white/50 text-xs mt-2">Phase 3: Live Backend Integration</p>
         </div>
         <BackendStatus />
-      </div>
+      </MagicalBackground>
     );
   }
 
   if (appState === 'landing') {
     return (
       <>
-        <LandingPage 
+        <RevolutionaryLanding 
           onGetStarted={() => setAppState('auth')}
           onSignIn={() => setAppState('auth')}
         />
@@ -70,12 +88,12 @@ function App() {
     );
   }
 
-  // User is logged in - show main app
+  // User is authenticated - show the main Genesis experience
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main>
-        <WizardFlow />
+        <EnhancedWizardFlow />
       </main>
       <BackendStatus />
     </div>
