@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench, Globe } from 'lucide-react';
+import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench, Globe, X } from 'lucide-react';
 import { testBackendConnection } from '../../lib/api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface BackendStatusProps {
   className?: string;
@@ -12,6 +13,8 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
   const [lastCheck, setLastCheck] = useState<Date>(new Date());
   const [mode, setMode] = useState<string>('');
   const [suggestedUrl, setSuggestedUrl] = useState<string>('');
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const checkConnection = async () => {
     setStatus('testing');
@@ -85,8 +88,8 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           color: 'text-blue-500',
           bg: 'bg-blue-500/20',
           border: 'border-blue-500/30',
-          text: 'Development Mode',
-          detail: `${latency}ms • Mock APIs`
+          text: 'Phase 1 Ready',
+          detail: `${latency}ms • Smart Fallbacks`
         };
       case 'mixed-content':
         return {
@@ -94,7 +97,7 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           color: 'text-orange-500',
           bg: 'bg-orange-500/20',
           border: 'border-orange-500/30',
-          text: 'Protocol Mismatch',
+          text: 'Protocol Issue',
           detail: 'HTTPS → HTTP blocked'
         };
       case 'failed':
@@ -127,53 +130,116 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
   }
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 ${className}`}>
-      <div className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm border backdrop-blur-sm ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border} shadow-lg`}>
-        <Icon className={`w-5 h-5 ${status === 'testing' ? 'animate-pulse' : ''}`} />
-        
-        <div className="flex flex-col">
-          <span className="font-semibold leading-tight">{statusInfo.text}</span>
-          <span className="text-xs opacity-80">{statusInfo.detail}</span>
-        </div>
-        
-        <button
-          onClick={checkConnection}
-          className="ml-2 p-1 hover:opacity-70 transition-opacity rounded"
-          title="Test connection"
+    <div className={`fixed bottom-4 right-4 z-40 ${className}`}>
+      <AnimatePresence>
+        {!isMinimized && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className={`flex items-center space-x-3 px-4 py-3 rounded-lg text-sm border backdrop-blur-sm ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border} shadow-lg max-w-xs`}
+          >
+            <Icon className={`w-5 h-5 ${status === 'testing' ? 'animate-pulse' : ''}`} />
+            
+            <div className="flex flex-col min-w-0">
+              <span className="font-semibold leading-tight truncate">{statusInfo.text}</span>
+              <span className="text-xs opacity-80 truncate">{statusInfo.detail}</span>
+            </div>
+            
+            <div className="flex items-center space-x-1 ml-2">
+              <button
+                onClick={checkConnection}
+                className="p-1 hover:opacity-70 transition-opacity rounded"
+                title="Test connection"
+              >
+                <Wifi className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="p-1 hover:opacity-70 transition-opacity rounded"
+                title="Show details"
+              >
+                <Wrench className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={() => setIsMinimized(true)}
+                className="p-1 hover:opacity-70 transition-opacity rounded"
+                title="Minimize"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Minimized state */}
+      {isMinimized && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          onClick={() => setIsMinimized(false)}
+          className={`w-12 h-12 rounded-full ${statusInfo.bg} ${statusInfo.color} ${statusInfo.border} border backdrop-blur-sm flex items-center justify-center shadow-lg hover:scale-110 transition-transform`}
         >
-          <Wifi className="w-4 h-4" />
-        </button>
-      </div>
+          <Icon className="w-5 h-5" />
+        </motion.button>
+      )}
       
       {/* Mixed content error guidance */}
-      {status === 'mixed-content' && suggestedUrl && (
-        <div className="mt-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-xs">
-          <div className="font-semibold text-orange-600 mb-1">
-            🚨 Mixed Content Error
-          </div>
-          <div className="text-gray-600 mb-2">
-            Frontend is HTTPS, backend is HTTP. Click below to switch:
-          </div>
-          <button
-            onClick={() => window.location.href = suggestedUrl}
-            className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors"
+      <AnimatePresence>
+        {status === 'mixed-content' && suggestedUrl && !isMinimized && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="mt-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-xs max-w-xs"
           >
-            Switch to HTTP
-          </button>
-        </div>
-      )}
-      
-      {import.meta.env.DEV && (
-        <div className="text-xs text-gray-400 mt-2 text-right px-2">
-          Last check: {lastCheck.toLocaleTimeString()}
-          {status === 'development' && (
-            <div className="text-blue-400 mt-1">
-              <Wrench className="w-3 h-3 inline mr-1" />
-              Smart fallbacks active
+            <div className="font-semibold text-orange-600 mb-1">
+              🚨 Mixed Content Error
             </div>
-          )}
-        </div>
-      )}
+            <div className="text-gray-600 mb-2">
+              Frontend is HTTPS, backend is HTTP. Click below to switch:
+            </div>
+            <button
+              onClick={() => window.location.href = suggestedUrl}
+              className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs"
+            >
+              Switch to HTTP
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Details panel */}
+      <AnimatePresence>
+        {showDetails && !isMinimized && import.meta.env.DEV && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="mt-2 p-3 bg-black/20 border border-white/10 rounded-lg text-xs max-w-xs backdrop-blur-sm"
+          >
+            <div className="text-white/80 space-y-1">
+              <div>Last check: {lastCheck.toLocaleTimeString()}</div>
+              <div>Phase: 1 (Intent Engine)</div>
+              {status === 'development' && (
+                <div className="text-blue-400 mt-2 flex items-center">
+                  <Wrench className="w-3 h-3 inline mr-1" />
+                  Smart fallbacks active
+                </div>
+              )}
+              <div className="text-gray-400 mt-2 text-xs">
+                Services for Phase 1: Supabase ✅
+                <br />
+                Services for Phase 3: Redis, Pinecone
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
