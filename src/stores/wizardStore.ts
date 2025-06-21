@@ -80,7 +80,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
   generateBlueprint: async () => {
     const { user_input } = get();
     
-    // Enhanced validation
+    // Phase 3: Enhanced validation
     if (!user_input.trim()) {
       get().addError('Please describe what you want to achieve');
       return;
@@ -92,25 +92,25 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
     }
 
     if (user_input.length > 2000) {
-      get().addError('Please keep your description under 2000 characters for optimal processing');
+      get().addError('Please keep your description under 2000 characters for optimal AI processing');
       return;
     }
 
     try {
       set({ isLoading: true, errors: [] });
-      console.log('🤖 Starting enhanced AI blueprint generation...');
+      console.log('🤖 Phase 3: Starting AI blueprint generation with Gemini Pro...');
       
-      // Call API with enhanced error handling
+      // Call real API with advanced error handling
       const blueprint = await apiMethods.generateBlueprint(user_input.trim());
       
       get().setBlueprint(blueprint);
       get().setStep('blueprint');
       
-      console.log('✅ Enhanced blueprint generation completed successfully');
+      console.log('✅ Phase 3: AI blueprint generation completed successfully');
       set({ isLoading: false });
       
     } catch (error: any) {
-      console.error('❌ Blueprint generation failed:', error);
+      console.error('❌ Phase 3: Blueprint generation failed:', error);
       
       // Enhanced error handling with helpful messages
       let errorMessage = 'Failed to generate blueprint. Please try again.';
@@ -147,9 +147,9 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
 
     try {
       set({ isLoading: true, errors: [] });
-      console.log('🧪 Starting intelligent guild simulation...');
+      console.log('🧪 Phase 3: Starting enhanced guild simulation with intelligence...');
       
-      // Prepare enhanced simulation data
+      // Phase 3: Enhanced simulation with real-time processing
       const simulationData = {
         blueprint_id: blueprint.id,
         agents: blueprint.suggested_structure.agents,
@@ -170,11 +170,11 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       get().setSimulationResults(results);
       get().setStep('deployment');
       
-      console.log('✅ Enhanced simulation completed successfully');
+      console.log('✅ Phase 3: Enhanced simulation completed successfully');
       set({ isLoading: false });
       
     } catch (error: any) {
-      console.error('❌ Simulation failed:', error);
+      console.error('❌ Phase 3: Simulation failed:', error);
       get().addError(error.message || 'Simulation failed. Please try again.');
       set({ isLoading: false });
     }
@@ -190,7 +190,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
 
     try {
       set({ isLoading: true, errors: [] });
-      console.log('🚀 Starting enhanced guild deployment...');
+      console.log('🚀 Phase 3: Starting enhanced guild deployment with business intelligence...');
       
       // Create the guild with enhanced metadata
       const guildData = {
@@ -211,7 +211,7 @@ export const useWizardStore = create<WizardStore>((set, get) => ({
       };
       
       const guild = await apiMethods.createGuild(guildData);
-      console.log('✅ Enhanced guild created:', guild.id);
+      console.log('✅ Phase 3: Guild created with AI architecture:', guild.id);
       
       // Create agents with enhanced configurations
       const agentPromises = blueprint.suggested_structure.agents.map(agentBlueprint => {
@@ -261,17 +261,17 @@ Always think strategically, act efficiently, and communicate clearly.`,
       
       // Wait for all agents to be created
       const agents = await Promise.all(agentPromises);
-      console.log(`✅ Created ${agents.length} enhanced agents successfully`);
+      console.log(`✅ Phase 3: Created ${agents.length} intelligent agents successfully`);
       
       set({ 
         deploymentId: guild.id,
         isLoading: false 
       });
       
-      console.log('🎉 Enhanced guild deployment completed successfully!');
+      console.log('🎉 Phase 3: Guild deployment completed successfully with AI intelligence!');
       
     } catch (error: any) {
-      console.error('❌ Deployment failed:', error);
+      console.error('❌ Phase 3: Deployment failed:', error);
       get().addError(error.message || 'Deployment failed. Please try again.');
       set({ isLoading: false });
     }

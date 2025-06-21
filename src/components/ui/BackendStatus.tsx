@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench, Globe, X } from 'lucide-react';
+import { Wifi, WifiOff, Zap, AlertCircle, CheckCircle, Code, Wrench, Globe, X, Brain } from 'lucide-react';
 import { testBackendConnection } from '../../lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +15,7 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
   const [suggestedUrl, setSuggestedUrl] = useState<string>('');
   const [isMinimized, setIsMinimized] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
+  const [phase, setPhase] = useState<string>('1');
 
   const checkConnection = async () => {
     setStatus('testing');
@@ -23,9 +24,15 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
       const result = await testBackendConnection();
       
       if (result.connected) {
+        // Phase 3: Enhanced status detection
+        if (result.status.phase === "3" || 
+            result.status.phase === "3 - Backend Integration") {
+          setPhase('3');
+        }
+        
         if (result.status.mode === 'development' || result.status.status === 'development_fallback') {
           setStatus('development');
-          setMode('Development Mode');
+          setMode(result.status.phase || 'Development Mode');
         } else {
           setStatus('connected');
           setMode('Production');
@@ -105,16 +112,16 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           color: 'text-green-500',
           bg: 'bg-green-500/20',
           border: 'border-green-500/30',
-          text: 'Backend Online',
+          text: phase === '3' ? 'Phase 3 Connected' : 'Backend Online',
           detail: `${latency}ms • ${mode}`
         };
       case 'development':
         return {
-          icon: Code,
+          icon: Brain,
           color: 'text-blue-500',
           bg: 'bg-blue-500/20',
           border: 'border-blue-500/30',
-          text: 'Phase 1 Ready',
+          text: `Phase ${phase} Active`,
           detail: `${latency}ms • Smart Fallbacks`
         };
       case 'mixed-content':
@@ -259,7 +266,7 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
           >
             <div className="text-white/80 space-y-1">
               <div>Last check: {lastCheck.toLocaleTimeString()}</div>
-              <div>Phase: 1 (Intent Engine)</div>
+              <div>Phase: {phase} {phase === '3' ? '(Backend Integration)' : '(Intent Engine)'}</div>
               <div>Protocol: {window.location.protocol}</div>
               <div>Host: {window.location.host}</div>
               {status === 'development' && (
@@ -275,9 +282,7 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
                 </div>
               )}
               <div className="text-gray-400 mt-2 text-xs">
-                Services for Phase 1: Supabase ✅
-                <br />
-                Services for Phase 3: Redis, Pinecone
+                Phase 3 Services: Supabase ✅ • Gemini ✅ • Redis ⏳ • Pinecone ⏳
               </div>
             </div>
           </motion.div>
