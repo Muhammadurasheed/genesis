@@ -36,10 +36,10 @@ else
 fi
 
 # Upgrade pip first
-pip install --upgrade pip
+$PYTHON_CMD -m pip install --upgrade pip
 
 # Install requirements
-pip install -r requirements.txt
+$PYTHON_CMD -m pip install -r requirements.txt
 
 echo "✅ Backend setup complete!"
 echo "🚀 To start the backend server:"
