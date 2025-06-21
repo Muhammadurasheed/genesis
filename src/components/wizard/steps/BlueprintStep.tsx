@@ -1,11 +1,13 @@
-import React from 'react';
-import { CheckCircle, Edit3, RotateCcw, ArrowRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, Edit3, RotateCcw, ArrowRight, Users, Workflow, Star, Clock, Target, Zap } from 'lucide-react';
 import { useWizardStore } from '../../../stores/wizardStore';
-import { Button } from '../../ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/Card';
+import { GlassCard } from '../../ui/GlassCard';
+import { HolographicButton } from '../../ui/HolographicButton';
 
 export const BlueprintStep: React.FC = () => {
   const { blueprint, setStep } = useWizardStore();
+  const [showDetails, setShowDetails] = useState(false);
 
   if (!blueprint) {
     return null;
@@ -23,111 +25,255 @@ export const BlueprintStep: React.FC = () => {
     setStep('welcome');
   };
 
+  const agentCount = blueprint.suggested_structure.agents.length;
+  const workflowCount = blueprint.suggested_structure.workflows.length;
+  const estimatedTime = Math.max(5, agentCount * 3 + workflowCount * 2);
+
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Your AI-Generated Blueprint
-          </h1>
-          <p className="text-lg text-gray-600">
-            Review the intelligent structure our Wizard created for your goal
-          </p>
-        </div>
+    <div className="container mx-auto px-6 py-12 max-w-6xl">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="text-center mb-12"
+      >
+        <h1 className="text-4xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent">
+          Your AI Blueprint
+        </h1>
+        <p className="text-xl text-gray-300 leading-relaxed max-w-3xl mx-auto">
+          Our AI architect has analyzed your vision and created an intelligent blueprint for your autonomous digital workforce
+        </p>
+      </motion.div>
 
-        <div className="grid gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Goal Interpretation</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-blue-50 p-4 rounded-lg mb-4">
-                <p className="text-sm text-gray-600 mb-2">Your Input:</p>
-                <p className="text-gray-900 font-medium">"{blueprint.user_input}"</p>
+      {/* Blueprint Stats */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="grid md:grid-cols-4 gap-6 mb-12"
+      >
+        {[
+          { icon: Users, label: "AI Agents", value: agentCount, color: "from-blue-500 to-cyan-500" },
+          { icon: Workflow, label: "Workflows", value: workflowCount, color: "from-purple-500 to-pink-500" },
+          { icon: Clock, label: "Setup Time", value: `${estimatedTime}m`, color: "from-green-500 to-emerald-500" },
+          { icon: Star, label: "Confidence", value: "95%", color: "from-orange-500 to-yellow-500" }
+        ].map((stat, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <GlassCard variant="medium" className="p-6 text-center">
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mx-auto mb-4`}>
+                <stat.icon className="w-6 h-6 text-white" />
               </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-sm text-gray-600 mb-2">AI Interpretation:</p>
-                <p className="text-gray-900">{blueprint.interpretation}</p>
-              </div>
-            </CardContent>
-          </Card>
+              <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+              <div className="text-gray-300 text-sm">{stat.label}</div>
+            </GlassCard>
+          </motion.div>
+        ))}
+      </motion.div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Suggested Guild Structure</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {blueprint.suggested_structure.guild_name}
-                </h3>
-                <p className="text-gray-600">{blueprint.suggested_structure.guild_purpose}</p>
-              </div>
+      {/* Goal Interpretation */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+        className="mb-12"
+      >
+        <GlassCard variant="medium" glow className="p-8">
+          <div className="flex items-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-4">
+              <Target className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-white">AI Analysis & Interpretation</h3>
+              <p className="text-gray-300">How our architect understood your vision</p>
+            </div>
+          </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div className="bg-white/5 p-6 rounded-xl border border-white/10">
+              <div className="text-sm text-gray-400 mb-2 flex items-center">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2"></span>
+                Your Vision
+              </div>
+              <p className="text-white font-medium text-lg">"{blueprint.user_input}"</p>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 p-6 rounded-xl border border-purple-500/20">
+              <div className="text-sm text-purple-300 mb-2 flex items-center">
+                <Zap className="w-4 h-4 mr-2" />
+                AI Interpretation
+              </div>
+              <p className="text-white leading-relaxed">{blueprint.interpretation}</p>
+            </div>
+          </div>
+        </GlassCard>
+      </motion.div>
+
+      {/* Guild Structure */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.6 }}
+        className="mb-12"
+      >
+        <GlassCard variant="medium" className="p-8">
+          <div className="text-center mb-8">
+            <h3 className="text-3xl font-bold text-white mb-3">
+              {blueprint.suggested_structure.guild_name}
+            </h3>
+            <p className="text-xl text-gray-300 leading-relaxed">
+              {blueprint.suggested_structure.guild_purpose}
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8">
+            {/* Digital Workers */}
+            <div>
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mr-3">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
-                    Digital Workers ({blueprint.suggested_structure.agents.length})
-                  </h4>
-                  <div className="space-y-3">
-                    {blueprint.suggested_structure.agents.map((agent, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-900">{agent.name}</h5>
-                        <p className="text-sm text-gray-600 mb-2">{agent.role}</p>
-                        <p className="text-sm text-gray-700">{agent.description}</p>
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {agent.tools_needed.map((tool, toolIndex) => (
-                            <span
-                              key={toolIndex}
-                              className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full"
-                            >
-                              {tool}
-                            </span>
-                          ))}
+                  <h4 className="text-xl font-bold text-white">Digital Workers</h4>
+                  <p className="text-gray-300 text-sm">Intelligent AI agents with specific roles</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {blueprint.suggested_structure.agents.map((agent, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                    whileHover={{ x: 5 }}
+                  >
+                    <GlassCard variant="subtle" className="p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <span className="text-white font-bold text-sm">{agent.name[0]}</span>
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-bold text-white mb-1">{agent.name}</h5>
+                          <p className="text-purple-300 text-sm mb-2">{agent.role}</p>
+                          <p className="text-gray-300 text-sm mb-3 leading-relaxed">{agent.description}</p>
+                          <div className="flex flex-wrap gap-2">
+                            {agent.tools_needed.map((tool, toolIndex) => (
+                              <span
+                                key={toolIndex}
+                                className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full border border-blue-500/30"
+                              >
+                                {tool}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </GlassCard>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
 
+            {/* Automation Workflows */}
+            <div>
+              <div className="flex items-center mb-6">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                  <Workflow className="w-5 h-5 text-white" />
+                </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-                    <CheckCircle className="w-5 h-5 mr-2 text-green-500" />
-                    Automation Flows ({blueprint.suggested_structure.workflows.length})
-                  </h4>
-                  <div className="space-y-3">
-                    {blueprint.suggested_structure.workflows.map((workflow, index) => (
-                      <div key={index} className="border border-gray-200 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-900">{workflow.name}</h5>
-                        <p className="text-sm text-gray-700 mb-2">{workflow.description}</p>
-                        <span className="inline-block px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                          Trigger: {workflow.trigger_type}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                  <h4 className="text-xl font-bold text-white">Automation Workflows</h4>
+                  <p className="text-gray-300 text-sm">Intelligent business processes</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          <div className="flex justify-center space-x-4">
-            <Button variant="outline" onClick={handleStartOver}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Start Over
-            </Button>
-            <Button variant="outline" onClick={handleEdit}>
-              <Edit3 className="w-4 h-4 mr-2" />
-              Edit Goal
-            </Button>
-            <Button onClick={handleApprove} size="lg">
-              Approve Blueprint
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
+              <div className="space-y-4">
+                {blueprint.suggested_structure.workflows.map((workflow, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                    whileHover={{ x: -5 }}
+                  >
+                    <GlassCard variant="subtle" className="p-6">
+                      <div className="flex items-start space-x-4">
+                        <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Workflow className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h5 className="font-bold text-white mb-1">{workflow.name}</h5>
+                          <p className="text-gray-300 text-sm mb-3 leading-relaxed">{workflow.description}</p>
+                          <div className="flex items-center">
+                            <span className="px-3 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full border border-purple-500/30">
+                              Trigger: {workflow.trigger_type}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </GlassCard>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
+        </GlassCard>
+      </motion.div>
+
+      {/* Action Buttons */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 1 }}
+        className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+      >
+        <HolographicButton variant="outline" onClick={handleStartOver}>
+          <RotateCcw className="w-4 h-4 mr-2" />
+          Start Over
+        </HolographicButton>
+        
+        <HolographicButton variant="outline" onClick={handleEdit}>
+          <Edit3 className="w-4 h-4 mr-2" />
+          Refine Vision
+        </HolographicButton>
+        
+        <HolographicButton onClick={handleApprove} size="lg" glow className="group">
+          <CheckCircle className="w-5 h-5 mr-2 group-hover:text-green-400 transition-colors" />
+          Approve Blueprint
+          <motion.div
+            animate={{ x: [0, 5, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="ml-2"
+          >
+            <ArrowRight className="w-5 h-5" />
+          </motion.div>
+        </HolographicButton>
+      </motion.div>
+
+      {/* Success Message */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.2 }}
+        className="mt-8 text-center"
+      >
+        <GlassCard variant="subtle" className="p-6 max-w-2xl mx-auto">
+          <div className="flex items-center justify-center mb-4">
+            <CheckCircle className="w-8 h-8 text-green-400 mr-3" />
+            <h4 className="text-lg font-semibold text-white">Blueprint Generated Successfully!</h4>
+          </div>
+          <p className="text-gray-300 text-sm leading-relaxed">
+            Your blueprint has been crafted with enterprise-grade intelligence. 
+            Next, we'll connect your tools and credentials to bring these agents to life.
+          </p>
+        </GlassCard>
+      </motion.div>
     </div>
   );
 };

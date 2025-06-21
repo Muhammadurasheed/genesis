@@ -1,84 +1,236 @@
 import React from 'react';
-import { Sparkles, Zap, Users, Workflow } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Sparkles, Zap, Users, Workflow, Brain, Rocket } from 'lucide-react';
 import { useWizardStore } from '../../../stores/wizardStore';
-import { Button } from '../../ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../../ui/Card';
+import { GlassCard } from '../../ui/GlassCard';
+import { HolographicButton } from '../../ui/HolographicButton';
+import { NeuralNetwork } from '../../ui/NeuralNetwork';
 
 export const WelcomeStep: React.FC = () => {
   const { setStep } = useWizardStore();
 
   const features = [
     {
-      icon: Sparkles,
-      title: 'AI-Powered Blueprint',
-      description: 'Describe your goal and watch our Wizard create intelligent blueprints'
+      icon: Brain,
+      title: 'Neural Blueprint Engine',
+      description: 'Transform natural language into intelligent system architectures',
+      color: 'from-purple-500 to-pink-500'
     },
     {
       icon: Users,
-      title: 'Digital Workers',
-      description: 'Hire AI agents that work like real teammates with voice and memory'
+      title: 'Sentient AI Workers',
+      description: 'Deploy digital team members with personality and memory',
+      color: 'from-blue-500 to-cyan-500'
     },
     {
       icon: Workflow,
-      title: 'Smart Workflows',
-      description: 'Automate complex business processes with visual, intelligent flows'
+      title: 'Quantum Workflows',
+      description: 'Create self-optimizing business processes that evolve',
+      color: 'from-emerald-500 to-teal-500'
     },
     {
       icon: Zap,
-      title: 'Instant Deployment',
-      description: 'Test in simulation, then deploy live agents in minutes'
+      title: 'Lightning Deployment',
+      description: 'Go from idea to autonomous operation in minutes',
+      color: 'from-orange-500 to-red-500'
     }
   ];
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <div className="max-w-4xl mx-auto text-center">
-        <div className="mb-8">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <span className="text-white font-bold text-3xl">G</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Welcome to <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">GenesisOS</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            The AI-native workspace where founders build elite, automated companies with digital workers, smart workflows, and voice-powered interaction.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          {features.map((feature, index) => (
-            <Card key={index} className="text-left" hover>
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <feature.icon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm">{feature.description}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Ready to start building?</CardTitle>
-            <p className="text-gray-600">Create your first Guild and transform your vision into autonomous digital execution.</p>
-          </CardHeader>
-          <CardContent>
-            <Button 
-              className="w-full" 
-              size="lg"
-              onClick={() => setStep('intent')}
+    <div className="relative min-h-screen flex items-center justify-center px-6">
+      {/* Neural Network Background */}
+      <NeuralNetwork nodes={25} connections={40} animate color="purple" />
+      
+      <div className="max-w-6xl mx-auto text-center relative z-10">
+        {/* Logo Animation */}
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ 
+            duration: 1.2, 
+            ease: "easeOut",
+            type: "spring",
+            stiffness: 100
+          }}
+          className="mb-12"
+        >
+          <div className="relative inline-block">
+            <motion.div 
+              className="w-24 h-24 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 rounded-3xl flex items-center justify-center mx-auto relative overflow-hidden"
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ type: "spring", stiffness: 400 }}
             >
-              Create Your First Guild
-              <Sparkles className="w-5 h-5 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
+              {/* Rotating inner glow */}
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent rounded-3xl"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+              />
+              
+              {/* Pulsing core */}
+              <motion.div
+                className="absolute inset-2 bg-white/10 rounded-2xl"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              
+              <span className="text-white font-bold text-4xl relative z-10">G</span>
+            </motion.div>
+            
+            {/* Orbiting particles */}
+            {Array.from({ length: 3 }).map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-3 h-3 bg-purple-400 rounded-full"
+                style={{
+                  top: "50%",
+                  left: "50%",
+                  marginTop: "-6px",
+                  marginLeft: "-6px"
+                }}
+                animate={{
+                  rotate: 360,
+                  scale: [1, 1.5, 1]
+                }}
+                transition={{
+                  rotate: { duration: 3 + i, repeat: Infinity, ease: "linear" },
+                  scale: { duration: 2, repeat: Infinity, delay: i * 0.5 }
+                }}
+                style={{
+                  transformOrigin: `${40 + i * 10}px 0px`
+                }}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Main Headlines */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          className="mb-16"
+        >
+          <h1 className="text-6xl md:text-8xl font-bold mb-6 leading-tight">
+            <span className="block text-white">Welcome to</span>
+            <motion.span 
+              className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent"
+              animate={{
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              style={{
+                backgroundSize: "200% 200%"
+              }}
+            >
+              GenesisOS
+            </motion.span>
+          </h1>
+          
+          <motion.p 
+            className="text-2xl md:text-3xl text-gray-300 mb-8 leading-relaxed max-w-4xl mx-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.6 }}
+          >
+            The world's first <span className="text-transparent bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text font-semibold">AI-native operating system</span> where 
+            visionary founders build autonomous empires through pure intention
+          </motion.p>
+        </motion.div>
+
+        {/* Features Grid */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.8 }}
+          className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
+        >
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.9 + index * 0.1 }}
+              whileHover={{ y: -10 }}
+              className="group"
+            >
+              <GlassCard variant="medium" className="p-6 h-full text-center group-hover:bg-white/15 transition-all duration-300">
+                <motion.div 
+                  className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}
+                  whileHover={{ rotate: 10 }}
+                >
+                  <feature.icon className="w-7 h-7 text-white" />
+                </motion.div>
+                
+                <h3 className="text-lg font-bold text-white mb-3 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-purple-400 group-hover:to-pink-400 group-hover:bg-clip-text transition-all duration-300">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-gray-300 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </GlassCard>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* CTA Section */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 1.2 }}
+        >
+          <GlassCard variant="medium" glow className="max-w-2xl mx-auto p-8">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.4 }}
+            >
+              <h2 className="text-3xl font-bold text-white mb-4">
+                Ready to Build Your Digital Empire?
+              </h2>
+              <p className="text-gray-300 mb-8 leading-relaxed">
+                Transform your business vision into an autonomous reality. Create your first Guild and experience 
+                the power of AI workers that think, learn, and execute beyond human capability.
+              </p>
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <HolographicButton 
+                  onClick={() => setStep('intent')} 
+                  size="xl" 
+                  glow
+                  className="group relative overflow-hidden"
+                >
+                  <span className="flex items-center gap-3">
+                    <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                    Begin Your Genesis
+                    <motion.div
+                      animate={{ x: [0, 5, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      <Rocket className="w-6 h-6" />
+                    </motion.div>
+                  </span>
+                </HolographicButton>
+              </motion.div>
+              
+              <motion.p 
+                className="mt-6 text-sm text-gray-400"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                ✨ No coding required • 🚀 Deploy in minutes • 🧠 Infinite intelligence
+              </motion.p>
+            </motion.div>
+          </GlassCard>
+        </motion.div>
       </div>
     </div>
   );
