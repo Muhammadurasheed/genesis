@@ -38,16 +38,6 @@ const isMixedContentError = (error: any): boolean => {
   
   const isMixedContent = currentProtocol === 'https:' && apiProtocol === 'http:';
   
-  console.log('🔍 Mixed Content Check:', {
-    errorMessage,
-    errorCode,
-    currentProtocol,
-    apiProtocol,
-    isNetworkError,
-    isMixedContent,
-    result: isNetworkError && isMixedContent
-  });
-  
   return isNetworkError && isMixedContent;
 };
 
@@ -87,15 +77,9 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error.response?.data || error.message);
-    
-    // Check for mixed content issues
+    // Check for mixed content issues first to avoid redundant logging
     if (isMixedContentError(error)) {
       const httpUrl = getHttpUrl();
-      
-      console.error('🚨 Mixed Content Error Detected!');
-      console.error('Frontend is running on HTTPS but backend is HTTP.');
-      console.error(`Please navigate to: ${httpUrl}`);
       
       // Create a new error with mixed content flag and suggested URL
       const mixedContentError = new Error(`Mixed Content Error: Please access the app via HTTP instead of HTTPS. Navigate to: ${httpUrl}`);
@@ -103,6 +87,9 @@ api.interceptors.response.use(
       mixedContentError.suggestedUrl = httpUrl;
       return Promise.reject(mixedContentError);
     }
+    
+    // Only log non-mixed-content errors
+    console.error('API Error:', error.response?.data || error.message);
     
     if (error.response?.status === 401) {
       localStorage.removeItem('supabase.auth.token');
@@ -176,12 +163,13 @@ export const apiMethods = {
       console.log('✅ API Health:', response.data);
       return response.data;
     } catch (error: any) {
-      console.error('❌ API Health Check Failed:', error.message);
-      
-      // Handle mixed content error specifically
+      // Handle mixed content error specifically - don't log, just re-throw
       if (error.isMixedContent) {
-        throw error; // Re-throw the mixed content error as-is
+        throw error;
       }
+      
+      // Log other errors
+      console.error('❌ API Health Check Failed:', error.message);
       
       if (isDevelopment) {
         console.log('🔧 Falling back to development mode');
