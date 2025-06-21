@@ -82,7 +82,7 @@ export interface WorkflowTrigger {
 
 export interface WorkflowNode {
   id: string;
-  type: 'agent' | 'action' | 'condition' | 'delay';
+  type: 'agent' | 'action' | 'condition' | 'delay' | 'trigger';
   position: { x: number; y: number };
   data: Record<string, any>;
 }
@@ -135,7 +135,7 @@ export interface SimulationResult {
 
 // UI State Types
 export interface WizardState {
-  step: 'welcome' | 'intent' | 'blueprint' | 'credentials' | 'simulation' | 'deployment';
+  step: 'welcome' | 'intent' | 'blueprint' | 'canvas' | 'credentials' | 'simulation' | 'deployment';
   user_input: string;
   blueprint?: Blueprint;
   credentials: Record<string, string>;
@@ -148,4 +148,159 @@ export interface CanvasState {
   selectedNode?: string;
   selectedEdge?: string;
   viewport: { x: number; y: number; zoom: number };
+}
+
+// Phase 2 Enhanced Types
+export interface EnhancedWorkflowNode extends WorkflowNode {
+  data: {
+    label: string;
+    description: string;
+    icon: React.ComponentType<any>;
+    color: string;
+    status: 'ready' | 'executing' | 'completed' | 'error' | 'paused';
+    metadata?: Record<string, any>;
+    version?: string;
+    lastModified?: string;
+    performance?: {
+      averageExecutionTime: number;
+      successRate: number;
+      lastExecution?: string;
+    };
+  };
+}
+
+export interface SmartSuggestion {
+  id: string;
+  type: string;
+  label: string;
+  description: string;
+  icon: React.ComponentType<any>;
+  confidence: number;
+  reasoning: string;
+  position?: { x: number; y: number };
+}
+
+export interface CollaborationUser {
+  id: string;
+  name: string;
+  avatar?: string;
+  color: string;
+  cursor: { x: number; y: number };
+  selection?: string[];
+  isActive: boolean;
+}
+
+export interface CanvasMetrics {
+  totalNodes: number;
+  completedNodes: number;
+  failedNodes: number;
+  averageExecutionTime: number;
+  successRate: number;
+  lastExecutionTime?: Date;
+  performanceScore: number;
+}
+
+export interface AutoLayoutOptions {
+  algorithm: 'dagre' | 'hierarchical' | 'circular' | 'force';
+  direction: 'TB' | 'BT' | 'LR' | 'RL';
+  spacing: { x: number; y: number };
+  animate: boolean;
+}
+
+// Enhanced Agent Types for Phase 2
+export interface EnhancedAgent extends Agent {
+  capabilities: {
+    reasoning: number;
+    creativity: number;
+    efficiency: number;
+    collaboration: number;
+  };
+  learning: {
+    interactions: number;
+    improvements: number;
+    feedback_score: number;
+  };
+  integrations: {
+    connected_tools: number;
+    api_calls_today: number;
+    success_rate: number;
+  };
+}
+
+// Canvas Theme System
+export interface CanvasTheme {
+  id: string;
+  name: string;
+  colors: {
+    background: string;
+    node: string;
+    edge: string;
+    selection: string;
+    grid: string;
+  };
+  effects: {
+    particles: boolean;
+    neural_network: boolean;
+    glow: boolean;
+    shadows: boolean;
+  };
+}
+
+// Smart Node Templates
+export interface NodeTemplate {
+  id: string;
+  type: string;
+  name: string;
+  description: string;
+  icon: React.ComponentType<any>;
+  color: string;
+  category: 'Core' | 'Integration' | 'Logic' | 'Utility' | 'AI';
+  defaultData: Record<string, any>;
+  connectable: {
+    input: boolean;
+    output: boolean;
+    multiple: boolean;
+  };
+}
+
+// Workflow Execution Context
+export interface ExecutionContext {
+  id: string;
+  workflow_id: string;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'paused';
+  start_time: Date;
+  end_time?: Date;
+  current_node?: string;
+  variables: Record<string, any>;
+  logs: ExecutionLog[];
+  metrics: CanvasMetrics;
+}
+
+export interface ExecutionLog {
+  timestamp: Date;
+  level: 'info' | 'warning' | 'error' | 'debug';
+  node_id?: string;
+  message: string;
+  data?: Record<string, any>;
+}
+
+// Advanced Canvas Features
+export interface CanvasShortcut {
+  key: string;
+  modifiers: ('ctrl' | 'shift' | 'alt' | 'meta')[];
+  action: string;
+  description: string;
+}
+
+export interface CanvasPlugin {
+  id: string;
+  name: string;
+  version: string;
+  enabled: boolean;
+  config: Record<string, any>;
+  hooks: {
+    onNodeCreate?: (node: WorkflowNode) => WorkflowNode;
+    onNodeUpdate?: (node: WorkflowNode) => WorkflowNode;
+    onExecute?: (context: ExecutionContext) => void;
+  };
 }
