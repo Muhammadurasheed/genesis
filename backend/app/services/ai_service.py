@@ -10,27 +10,27 @@ import logging
 logger = logging.getLogger(__name__)
 
 class AIService:
-    """Advanced AI service for intelligent blueprint generation and agent consciousness"""
+    """Phase 1: Enhanced AI service for intelligent blueprint generation"""
     
     def __init__(self):
-        """Initialize with Gemini Pro for maximum intelligence"""
+        """Initialize with Gemini Pro for maximum intelligence in Phase 1"""
         if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "":
             try:
                 genai.configure(api_key=settings.GEMINI_API_KEY)
                 self.model = genai.GenerativeModel('gemini-1.5-pro')
                 self.available = True
-                logger.info("✅ Gemini 1.5 Pro initialized successfully")
+                logger.info("✅ Gemini 1.5 Pro initialized successfully for Phase 1")
             except Exception as e:
-                logger.warning(f"⚠️ Gemini initialization failed: {e} - using fallback")
+                logger.warning(f"⚠️ Gemini initialization failed: {e} - using intelligent fallback")
                 self.model = None
                 self.available = False
         else:
-            logger.warning("⚠️ Gemini API key not configured - using intelligent fallback")
+            logger.warning("⚠️ Gemini API key not configured - using intelligent fallback for Phase 1")
             self.model = None
             self.available = False
         
     async def generate_blueprint(self, user_input: str) -> Blueprint:
-        """Generate AI blueprint from user intent with divine intelligence"""
+        """Generate AI blueprint from user intent with Phase 1 intelligence"""
         
         if self.available and self.model:
             return await self._generate_with_gemini(user_input)
@@ -38,11 +38,11 @@ class AIService:
             return await self._generate_intelligent_fallback(user_input)
     
     async def _generate_with_gemini(self, user_input: str) -> Blueprint:
-        """Generate blueprint using Gemini 1.5 Pro with advanced prompting"""
+        """Generate blueprint using Gemini 1.5 Pro with advanced Phase 1 prompting"""
         
-        # Advanced prompt engineering for business intelligence
+        # Phase 1: Advanced prompt engineering for business intelligence
         prompt = f"""
-        You are GENESIS AI - the world's most advanced business automation architect.
+        You are GENESIS AI - the world's most advanced business automation architect in Phase 1 development.
         You possess deep understanding of business operations, workflow optimization, and AI agent deployment.
         
         FOUNDER'S VISION: "{user_input}"
@@ -80,7 +80,7 @@ class AIService:
             }}
         }}
         
-        INTELLIGENCE GUIDELINES:
+        PHASE 1 INTELLIGENCE GUIDELINES:
         - Create 2-4 agents maximum for focused excellence
         - Each agent should have distinct, complementary capabilities
         - Tools should be real, actionable APIs (Stripe, Slack, SendGrid, etc.)
@@ -96,11 +96,11 @@ class AIService:
         - Scales from startup to enterprise
         - Considers security and compliance
         
-        Generate a blueprint that would impress Sam Altman and solve real business problems.
+        Generate a Phase 1 blueprint that would impress Sam Altman and solve real business problems.
         """
         
         try:
-            logger.info(f"🤖 Generating blueprint with Gemini for: {user_input[:50]}...")
+            logger.info(f"🤖 Phase 1: Generating blueprint with Gemini for: {user_input[:50]}...")
             
             response = self.model.generate_content(
                 prompt,
@@ -128,7 +128,7 @@ class AIService:
                 logger.warning("⚠️ Invalid blueprint structure from Gemini, using intelligent fallback")
                 return await self._generate_intelligent_fallback(user_input)
             
-            # Create blueprint object with enhanced metadata
+            # Create blueprint object with Phase 1 metadata
             blueprint = Blueprint(
                 id=str(uuid.uuid4()),
                 user_input=user_input,
@@ -139,11 +139,11 @@ class AIService:
                 updated_at=datetime.utcnow()
             )
             
-            logger.info(f"✅ Gemini blueprint generated successfully: {blueprint.id}")
+            logger.info(f"✅ Phase 1: Gemini blueprint generated successfully: {blueprint.id}")
             return blueprint
             
         except Exception as e:
-            logger.error(f"❌ Gemini blueprint generation failed: {e}")
+            logger.error(f"❌ Phase 1: Gemini blueprint generation failed: {e}")
             return await self._generate_intelligent_fallback(user_input)
     
     def _extract_json_from_response(self, text: str) -> Optional[str]:
@@ -191,7 +191,7 @@ class AIService:
         return None
     
     def _validate_blueprint_structure(self, data: dict) -> bool:
-        """Validate blueprint structure with comprehensive checks"""
+        """Validate Phase 1 blueprint structure with comprehensive checks"""
         
         try:
             required_fields = ["interpretation", "suggested_structure"]
@@ -226,13 +226,13 @@ class AIService:
             return True
             
         except Exception as e:
-            logger.error(f"❌ Blueprint validation error: {e}")
+            logger.error(f"❌ Phase 1: Blueprint validation error: {e}")
             return False
     
     async def _generate_intelligent_fallback(self, user_input: str) -> Blueprint:
-        """Generate intelligent fallback blueprint using business logic"""
+        """Generate intelligent fallback blueprint using Phase 1 business logic"""
         
-        logger.info(f"🧠 Generating intelligent fallback blueprint for: {user_input[:50]}...")
+        logger.info(f"🧠 Phase 1: Generating intelligent fallback blueprint for: {user_input[:50]}...")
         
         # Analyze user input for keywords and intent
         user_lower = user_input.lower()
@@ -253,21 +253,21 @@ class AIService:
             updated_at=datetime.utcnow()
         )
         
-        logger.info(f"✅ Intelligent fallback blueprint generated: {blueprint.id}")
+        logger.info(f"✅ Phase 1: Intelligent fallback blueprint generated: {blueprint.id}")
         return blueprint
     
     def _analyze_business_domain(self, user_input: str) -> Dict[str, Any]:
-        """Analyze business domain with sophisticated keyword detection"""
+        """Analyze business domain with sophisticated Phase 1 keyword detection"""
         
         domain_keywords = {
-            "customer_support": ["support", "customer", "help", "ticket", "issue", "problem", "service"],
-            "sales": ["sales", "lead", "prospect", "deal", "revenue", "conversion", "pipeline"],
-            "marketing": ["marketing", "campaign", "email", "social", "content", "brand", "advertising"],
-            "finance": ["finance", "payment", "invoice", "billing", "accounting", "revenue", "expense"],
-            "operations": ["operation", "process", "workflow", "automation", "efficiency", "task"],
-            "analytics": ["analytics", "data", "report", "metrics", "insights", "dashboard", "tracking"],
-            "hr": ["hr", "human resources", "employee", "hiring", "recruitment", "onboarding"],
-            "ecommerce": ["shop", "store", "product", "order", "inventory", "shipping", "cart"]
+            "customer_support": ["support", "customer", "help", "ticket", "issue", "problem", "service", "chat", "response"],
+            "sales": ["sales", "lead", "prospect", "deal", "revenue", "conversion", "pipeline", "crm", "follow"],
+            "marketing": ["marketing", "campaign", "email", "social", "content", "brand", "advertising", "seo", "growth"],
+            "finance": ["finance", "payment", "invoice", "billing", "accounting", "revenue", "expense", "mrr", "report"],
+            "operations": ["operation", "process", "workflow", "automation", "efficiency", "task", "manage", "coordinate"],
+            "analytics": ["analytics", "data", "report", "metrics", "insights", "dashboard", "tracking", "measure"],
+            "hr": ["hr", "human resources", "employee", "hiring", "recruitment", "onboarding", "team", "staff"],
+            "ecommerce": ["shop", "store", "product", "order", "inventory", "shipping", "cart", "checkout", "fulfillment"]
         }
         
         detected_domains = []
@@ -288,39 +288,69 @@ class AIService:
         }
     
     def _create_contextual_blueprint(self, user_input: str, domain_analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Create contextual blueprint based on domain analysis"""
+        """Create contextual Phase 1 blueprint based on domain analysis"""
         
         primary_domain = domain_analysis["primary_domain"]
         
-        # Domain-specific blueprint templates
+        # Phase 1: Domain-specific blueprint templates
         templates = {
             "customer_support": {
                 "guild_name": "Customer Success Command Center",
                 "guild_purpose": "Deliver exceptional customer experiences through intelligent automation and human-like support",
                 "agents": [
                     {
-                        "name": "Support Specialist",
-                        "role": "Customer Support Agent",
-                        "description": "Handles customer inquiries, resolves issues, and escalates complex problems with empathy and efficiency",
-                        "tools_needed": ["Zendesk API", "Slack API", "Email Integration"]
+                        "name": "Support Intelligence Agent",
+                        "role": "Customer Support Specialist",
+                        "description": "Handles customer inquiries with empathy, resolves issues intelligently, and escalates complex problems with context preservation",
+                        "tools_needed": ["Zendesk API", "Slack Integration", "Email Automation", "Knowledge Base API"]
                     },
                     {
                         "name": "Knowledge Curator",
-                        "role": "Information Specialist",
-                        "description": "Maintains and updates knowledge base, creates help articles, and ensures information accuracy",
-                        "tools_needed": ["Knowledge Base API", "Document Generator", "Content Management"]
+                        "role": "Information Management Specialist",
+                        "description": "Maintains and updates knowledge base, creates help articles, and ensures information accuracy with real-time updates",
+                        "tools_needed": ["Knowledge Base API", "Document Generator", "Content Management", "Search Analytics"]
                     }
                 ],
                 "workflows": [
                     {
                         "name": "Intelligent Ticket Routing",
-                        "description": "Automatically categorizes and routes support tickets to appropriate agents or teams",
+                        "description": "Automatically categorizes and routes support tickets to appropriate agents with priority scoring",
                         "trigger_type": "webhook"
                     },
                     {
                         "name": "Customer Satisfaction Monitoring",
-                        "description": "Tracks satisfaction scores and triggers follow-up actions for improvement",
+                        "description": "Tracks satisfaction scores and triggers follow-up actions for continuous improvement",
                         "trigger_type": "schedule"
+                    }
+                ]
+            },
+            "finance": {
+                "guild_name": "Financial Intelligence Hub",
+                "guild_purpose": "Automate financial reporting and insights with enterprise-grade accuracy and real-time monitoring",
+                "agents": [
+                    {
+                        "name": "Revenue Analytics Agent",
+                        "role": "Financial Data Analyst",
+                        "description": "Processes revenue data, generates MRR reports, and provides financial insights with predictive analytics",
+                        "tools_needed": ["Stripe API", "QuickBooks API", "Slack Integration", "Analytics Dashboard"]
+                    },
+                    {
+                        "name": "Report Distribution Agent", 
+                        "role": "Communication Specialist",
+                        "description": "Formats and distributes financial reports to stakeholders with personalized insights and scheduling",
+                        "tools_needed": ["Email API", "Slack API", "PDF Generator", "Calendar Integration"]
+                    }
+                ],
+                "workflows": [
+                    {
+                        "name": "Weekly MRR Report Generation",
+                        "description": "Automatically generates and distributes weekly Monthly Recurring Revenue reports with insights",
+                        "trigger_type": "schedule"
+                    },
+                    {
+                        "name": "Financial Threshold Alerts",
+                        "description": "Monitors key financial metrics and sends alerts when thresholds are crossed",
+                        "trigger_type": "event"
                     }
                 ]
             },
@@ -331,14 +361,14 @@ class AIService:
                     {
                         "name": "Lead Intelligence Agent",
                         "role": "Sales Development Representative",
-                        "description": "Qualifies leads, enriches prospect data, and schedules meetings with decision makers",
-                        "tools_needed": ["CRM API", "LinkedIn API", "Email Automation"]
+                        "description": "Qualifies leads, enriches prospect data, and schedules meetings with decision makers using advanced scoring",
+                        "tools_needed": ["CRM API", "LinkedIn API", "Email Automation", "Calendar Integration"]
                     },
                     {
                         "name": "Deal Accelerator",
                         "role": "Sales Operations Specialist",
-                        "description": "Monitors deal progress, identifies bottlenecks, and suggests optimization strategies",
-                        "tools_needed": ["Salesforce API", "Calendar API", "Analytics API"]
+                        "description": "Monitors deal progress, identifies bottlenecks, and suggests optimization strategies with AI insights",
+                        "tools_needed": ["Salesforce API", "Calendar API", "Analytics API", "Communication Tools"]
                     }
                 ],
                 "workflows": [
@@ -353,36 +383,6 @@ class AIService:
                         "trigger_type": "schedule"
                     }
                 ]
-            },
-            "marketing": {
-                "guild_name": "Brand Growth Accelerator",
-                "guild_purpose": "Drive brand awareness and customer acquisition through intelligent marketing automation",
-                "agents": [
-                    {
-                        "name": "Content Strategist",
-                        "role": "Marketing Content Specialist",
-                        "description": "Creates, schedules, and optimizes content across multiple marketing channels",
-                        "tools_needed": ["Social Media APIs", "Email Marketing", "Content Management"]
-                    },
-                    {
-                        "name": "Campaign Optimizer",
-                        "role": "Marketing Analytics Specialist",
-                        "description": "Analyzes campaign performance and automatically optimizes targeting and spending",
-                        "tools_needed": ["Google Analytics", "Facebook Ads API", "Marketing Automation"]
-                    }
-                ],
-                "workflows": [
-                    {
-                        "name": "Multi-Channel Campaign Execution",
-                        "description": "Coordinates marketing campaigns across email, social media, and advertising platforms",
-                        "trigger_type": "schedule"
-                    },
-                    {
-                        "name": "Performance Optimization Loop",
-                        "description": "Continuously monitors and optimizes campaign performance based on real-time data",
-                        "trigger_type": "event"
-                    }
-                ]
             }
         }
         
@@ -390,7 +390,7 @@ class AIService:
         template = templates.get(primary_domain, templates["customer_support"])
         
         # Customize interpretation based on user input
-        interpretation = f"I understand you want to create an intelligent system for: {user_input}. Based on your requirements, I've designed a {template['guild_name']} that will automate and enhance your {primary_domain.replace('_', ' ')} operations with AI-powered agents."
+        interpretation = f"I understand you want to create an intelligent system for: {user_input}. Based on your requirements, I've designed a {template['guild_name']} that will automate and enhance your {primary_domain.replace('_', ' ')} operations with AI-powered agents working in perfect coordination."
         
         return {
             "interpretation": interpretation,
@@ -398,7 +398,7 @@ class AIService:
         }
 
     async def generate_agent_response(self, agent_context: Dict[str, Any], query: str) -> str:
-        """Generate intelligent agent responses with personality"""
+        """Generate intelligent agent responses with personality (Phase 2+)"""
         
         if self.available and self.model:
             return await self._generate_agent_response_with_gemini(agent_context, query)
