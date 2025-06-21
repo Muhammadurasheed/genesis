@@ -33,27 +33,53 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
         setLatency(result.latency);
         setSuggestedUrl(''); // Clear any previous suggestion
       } else {
-        // Check if this is a mixed content error
-        if (result.status.error?.includes('Mixed Content Error')) {
+        // Check for mixed content error in the status
+        if (result.status.isMixedContent || result.status.error?.includes('Mixed Content Error')) {
           setStatus('mixed-content');
           setMode('Protocol Mismatch');
-          const urlMatch = result.status.error.match(/Navigate to: (.+)$/);
-          if (urlMatch) {
-            setSuggestedUrl(urlMatch[1]);
+          
+          // Extract suggested URL from either the status or error message
+          let url = result.status.suggestedUrl || '';
+          if (!url && result.status.error) {
+            const urlMatch = result.status.error.match(/Navigate to: (.+)$/);
+            if (urlMatch) {
+              url = urlMatch[1];
+            }
           }
+          setSuggestedUrl(url);
+          
+          console.log('🔧 Mixed content detected:', {
+            error: result.status.error,
+            suggestedUrl: url,
+            isMixedContent: result.status.isMixedContent
+          });
         } else {
           setStatus('failed');
           setMode('Offline');
         }
       }
     } catch (error: any) {
-      if (error.message?.includes('Mixed Content Error')) {
+      console.error('Connection check error:', error);
+      
+      // Direct error handling for mixed content
+      if (error.message?.includes('Mixed Content Error') || error.isMixedContent) {
         setStatus('mixed-content');
         setMode('Protocol Mismatch');
-        const urlMatch = error.message.match(/Navigate to: (.+)$/);
-        if (urlMatch) {
-          setSuggestedUrl(urlMatch[1]);
+        
+        let url = error.suggestedUrl || '';
+        if (!url) {
+          const urlMatch = error.message?.match(/Navigate to: (.+)$/);
+          if (urlMatch) {
+            url = urlMatch[1];
+          }
         }
+        setSuggestedUrl(url);
+        
+        console.log('🔧 Mixed content error caught:', {
+          error: error.message,
+          suggestedUrl: url,
+          isMixedContent: error.isMixedContent
+        });
       } else {
         setStatus('failed');
         setMode('Error');
@@ -124,8 +150,10 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
   const statusInfo = getStatusInfo();
   const Icon = statusInfo.icon;
 
-  // Show in development or when there are issues
-  if (import.meta.env.PROD && status === 'connected') {
+  // Always show the component in development or when there are issues
+  const shouldShow = import.meta.env.DEV || status !== 'connected';
+
+  if (!shouldShow) {
     return null;
   }
 
@@ -197,18 +225,25 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
             exit={{ opacity: 0, y: 10 }}
             className="mt-2 p-3 bg-orange-500/10 border border-orange-500/30 rounded-lg text-xs max-w-xs"
           >
-            <div className="font-semibold text-orange-600 mb-1">
-              🚨 Mixed Content Error
+            <div className="font-semibold text-orange-600 mb-1 flex items-center">
+              <AlertCircle className="w-4 h-4 mr-1" />
+              Mixed Content Error
             </div>
             <div className="text-gray-600 mb-2">
-              Frontend is HTTPS, backend is HTTP. Click below to switch:
+              Frontend is HTTPS, backend is HTTP. Click below to switch to HTTP:
             </div>
             <button
-              onClick={() => window.location.href = suggestedUrl}
-              className="px-3 py-1 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs"
+              onClick={() => {
+                console.log('🔄 Redirecting to HTTP:', suggestedUrl);
+                window.location.href = suggestedUrl;
+              }}
+              className="w-full px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors text-xs font-medium"
             >
               Switch to HTTP
             </button>
+            <div className="mt-1 text-xs text-gray-500 break-all">
+              {suggestedUrl}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -225,10 +260,18 @@ export const BackendStatus: React.FC<BackendStatusProps> = ({ className = '' }) 
             <div className="text-white/80 space-y-1">
               <div>Last check: {lastCheck.toLocaleTimeString()}</div>
               <div>Phase: 1 (Intent Engine)</div>
+              <div>Protocol: {window.location.protocol}</div>
+              <div>Host: {window.location.host}</div>
               {status === 'development' && (
                 <div className="text-blue-400 mt-2 flex items-center">
                   <Wrench className="w-3 h-3 inline mr-1" />
                   Smart fallbacks active
+                </div>
+              )}
+              {status === 'mixed-content' && (
+                <div className="text-orange-400 mt-2 flex items-center">
+                  <AlertCircle className="w-3 h-3 inline mr-1" />
+                  Protocol mismatch detected
                 </div>
               )}
               <div className="text-gray-400 mt-2 text-xs">

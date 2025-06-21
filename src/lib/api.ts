@@ -23,14 +23,50 @@ export const api = axios.create({
   timeout: 15000, // Reduced timeout for better UX
 });
 
-// Helper function to detect mixed content issues
+// Enhanced function to detect mixed content issues
 const isMixedContentError = (error: any): boolean => {
   const errorMessage = error.message?.toLowerCase() || '';
-  const isNetworkError = errorMessage.includes('network error');
+  const errorCode = error.code || '';
   const currentProtocol = window.location.protocol;
   const apiProtocol = API_BASE_URL.startsWith('https://') ? 'https:' : 'http:';
   
-  return isNetworkError && currentProtocol === 'https:' && apiProtocol === 'http:';
+  // More comprehensive detection of mixed content errors
+  const isNetworkError = errorMessage.includes('network error') || 
+                        errorCode === 'NETWORK_ERROR' ||
+                        errorMessage.includes('mixed content') ||
+                        errorMessage.includes('blocked by the client');
+  
+  const isMixedContent = currentProtocol === 'https:' && apiProtocol === 'http:';
+  
+  console.log('🔍 Mixed Content Check:', {
+    errorMessage,
+    errorCode,
+    currentProtocol,
+    apiProtocol,
+    isNetworkError,
+    isMixedContent,
+    result: isNetworkError && isMixedContent
+  });
+  
+  return isNetworkError && isMixedContent;
+};
+
+// Get the correct HTTP URL for the current environment
+const getHttpUrl = (): string => {
+  const currentUrl = window.location.href;
+  
+  // If we're in a WebContainer or similar environment, the URL might have a special format
+  if (currentUrl.includes('webcontainer-api.io')) {
+    // For WebContainer, just replace https with http
+    return currentUrl.replace('https://', 'http://');
+  } else if (currentUrl.includes('localhost') || currentUrl.includes('127.0.0.1')) {
+    // For localhost, simple replacement should work
+    return currentUrl.replace('https://localhost', 'http://localhost')
+                    .replace('https://127.0.0.1', 'http://127.0.0.1');
+  } else {
+    // For other environments, try simple protocol replacement
+    return currentUrl.replace('https://', 'http://');
+  }
 };
 
 // Request interceptor to add auth token
@@ -53,18 +89,19 @@ api.interceptors.response.use(
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
     
-    // Check for mixed content issues in development
-    if (isDevelopment && isMixedContentError(error)) {
-      const currentUrl = window.location.href;
-      const httpUrl = currentUrl.replace('https://', 'http://');
+    // Check for mixed content issues
+    if (isMixedContentError(error)) {
+      const httpUrl = getHttpUrl();
       
       console.error('🚨 Mixed Content Error Detected!');
       console.error('Frontend is running on HTTPS but backend is HTTP.');
       console.error(`Please navigate to: ${httpUrl}`);
       
-      // Add helpful error context
-      error.isMixedContent = true;
-      error.suggestedUrl = httpUrl;
+      // Create a new error with mixed content flag and suggested URL
+      const mixedContentError = new Error(`Mixed Content Error: Please access the app via HTTP instead of HTTPS. Navigate to: ${httpUrl}`);
+      mixedContentError.isMixedContent = true;
+      mixedContentError.suggestedUrl = httpUrl;
+      return Promise.reject(mixedContentError);
     }
     
     if (error.response?.status === 401) {
@@ -143,7 +180,7 @@ export const apiMethods = {
       
       // Handle mixed content error specifically
       if (error.isMixedContent) {
-        throw new Error(`Mixed Content Error: Please access the app via HTTP instead of HTTPS. Navigate to: ${error.suggestedUrl}`);
+        throw error; // Re-throw the mixed content error as-is
       }
       
       if (isDevelopment) {
@@ -384,7 +421,9 @@ export const testBackendConnection = async (): Promise<{connected: boolean, late
       latency: Math.round(latency),
       status: { 
         error: error.message,
-        mode: isDevelopment ? 'development_fallback' : 'production_error'
+        mode: isDevelopment ? 'development_fallback' : 'production_error',
+        isMixedContent: error.isMixedContent,
+        suggestedUrl: error.suggestedUrl
       }
     };
   }

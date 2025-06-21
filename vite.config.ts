@@ -13,9 +13,9 @@ export default defineConfig({
   server: {
     // Force HTTP in development to avoid mixed content issues
     https: false,
-    host: 'localhost',
+    host: true, // Allow external connections
     port: 5173,
-    strictPort: true,
+    strictPort: false, // Allow port fallback if 5173 is taken
   },
   // Ensure proper protocol handling
   define: {
