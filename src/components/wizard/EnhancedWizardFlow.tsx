@@ -5,6 +5,7 @@ import { MagicalBackground } from '../ui/MagicalBackground';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { IntentStep } from './steps/IntentStep';
 import { BlueprintStep } from './steps/BlueprintStep';
+import { CanvasStep } from './steps/CanvasStep';
 import { CredentialsStep } from './steps/CredentialsStep';
 import { SimulationStep } from './steps/SimulationStep';
 import { DeploymentStep } from './steps/DeploymentStep';
@@ -13,6 +14,7 @@ const stepComponents = {
   welcome: WelcomeStep,
   intent: IntentStep,
   blueprint: BlueprintStep,
+  canvas: CanvasStep,
   credentials: CredentialsStep,
   simulation: SimulationStep,
   deployment: DeploymentStep,
@@ -22,9 +24,20 @@ const stepTitles = {
   welcome: "Welcome to Genesis",
   intent: "Share Your Vision",
   blueprint: "AI Blueprint",
+  canvas: "Visual Canvas",
   credentials: "Connect Your Tools",
   simulation: "Test Your Guild",
   deployment: "Deploy & Scale"
+};
+
+const stepDescriptions = {
+  welcome: "Enter the AI-native workspace revolution",
+  intent: "Transform your vision into intelligent architecture",
+  blueprint: "Review your AI-generated business structure",
+  canvas: "Design and customize your workflow visually",
+  credentials: "Connect the tools your agents will use",
+  simulation: "Test your guild in a safe environment",
+  deployment: "Launch your autonomous digital workforce"
 };
 
 export const EnhancedWizardFlow: React.FC = () => {
@@ -39,14 +52,24 @@ export const EnhancedWizardFlow: React.FC = () => {
       {/* Progress Indicator */}
       <div className="fixed top-0 left-0 w-full z-50">
         <div className="bg-black/20 backdrop-blur-sm border-b border-white/10">
-          <div className="max-w-4xl mx-auto px-6 py-4">
+          <div className="max-w-6xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between mb-3">
-              <h1 className="text-lg font-semibold text-white">
-                {stepTitles[step]}
-              </h1>
-              <span className="text-sm text-gray-300">
-                Step {stepIndex + 1} of {totalSteps}
-              </span>
+              <div>
+                <h1 className="text-lg font-semibold text-white">
+                  {stepTitles[step]}
+                </h1>
+                <p className="text-sm text-gray-300">
+                  {stepDescriptions[step]}
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="text-sm text-gray-300">
+                  Phase 2: Canvas & Workflow Engine
+                </span>
+                <div className="text-xs text-purple-300">
+                  Step {stepIndex + 1} of {totalSteps}
+                </div>
+              </div>
             </div>
             
             {/* Progress Bar */}
@@ -64,15 +87,40 @@ export const EnhancedWizardFlow: React.FC = () => {
               {Object.keys(stepComponents).map((stepKey, index) => (
                 <motion.div
                   key={stepKey}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    index <= stepIndex 
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
-                      : 'bg-white/20'
-                  }`}
+                  className={`relative flex flex-col items-center ${
+                    index <= stepIndex ? 'opacity-100' : 'opacity-40'
+                  } transition-opacity duration-300`}
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: index * 0.1 }}
-                />
+                >
+                  <div className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    index < stepIndex 
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500' 
+                      : index === stepIndex
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 ring-2 ring-purple-400/50'
+                      : 'bg-white/20'
+                  }`} />
+                  <span className="text-xs text-gray-300 mt-1 capitalize">
+                    {stepKey}
+                  </span>
+                  
+                  {/* Active step glow */}
+                  {index === stepIndex && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full bg-purple-400/30 blur-sm -z-10"
+                      animate={{
+                        scale: [1, 1.5, 1],
+                        opacity: [0.3, 0.6, 0.3],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                  )}
+                </motion.div>
               ))}
             </div>
           </div>
@@ -102,6 +150,19 @@ export const EnhancedWizardFlow: React.FC = () => {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Phase 2 Badge */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 1 }}
+        className="fixed bottom-4 left-4 z-40"
+      >
+        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-3 rounded-xl border border-white/20 backdrop-blur-sm">
+          <div className="text-white font-semibold text-sm">Phase 2</div>
+          <div className="text-white/80 text-xs">Canvas & Workflow Engine</div>
+        </div>
+      </motion.div>
     </MagicalBackground>
   );
 };
